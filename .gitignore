@@ -33,19 +33,8 @@ Thumbs.db
 *.env
 
 # Database / cache files
-chat_history.json
 *.db
 *.sqlite3
-
-# Uploaded/generated files
-files/**/*.pdf
-files/**/*.docx
-files/**/*.xlsx
-
-# If you want to keep some PDFs in repo, remove the above rule
-# and instead list only big private files:
-# files/guideToSchedule.pdf
-# files/Calendar20252026.pdf
 
 # Byte-compiled transformers cache
 .sentence_transformers/
