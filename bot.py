@@ -9,6 +9,7 @@ import re
 from aiogram.utils.media_group import MediaGroupBuilder
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
+from aiogram.utils.media_group import MediaGroupBuilder
 
 from sentence_transformers import SentenceTransformer, util
 from dotenv import load_dotenv
@@ -79,9 +80,11 @@ def inline_main_menu() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text=" Модель: 4.1-mini", callback_data="model_openai_gpt41mini"),
             InlineKeyboardButton(text=" Модель: 4.1",      callback_data="model_openai_gpt41"),
             InlineKeyboardButton(text=" Модель: 4o-mini",   callback_data="model_openai_gpt4omini"),
-            InlineKeyboardButton(text=" Формирование Расписания", callback_data="timetable-alter"),
+            InlineKeyboardButton(text=" Формирование Расписания", callback_data="timetable-alter")
         ],
-        [InlineKeyboardButton(text=" Папка с каналами и чатами КБТУ", callback_data="kbtu-chats")],
+        [   InlineKeyboardButton(text=" Папка с каналами и чатами КБТУ", callback_data="kbtu-chats"),
+            InlineKeyboardButton(text=" Схема здания КБТУ", callback_data="KBTU_Schema")
+         ],
     ])
 
 def rups_menu() -> InlineKeyboardMarkup:
@@ -215,6 +218,30 @@ async def on_settings(cb: CallbackQuery):
     text = f"Текущая модель: {current_model['name']}"
     await cb.message.edit_text(text, reply_markup=inline_main_menu())
     await cb.answer()
+
+@dp.callback_query(F.data == "gallery-2024")
+async def on_gallery(cb: CallbackQuery):
+    folder = Path(__file__).resolve().parent / "files" / "images" / "2024"
+    paths = sorted(folder.glob("*.jpg")) + sorted(folder.glob("*.png"))
+    if not paths:
+        await cb.answer("Нет изображений", show_alert=True)
+        return
+
+    await cb.answer()
+    await cb.message.answer(f"Нашёл братан,отправляю {len(paths)} фоток…")
+
+    chunk_size = 10 
+    for i in range(0, len(paths), chunk_size):
+        chunk = paths[i:i+chunk_size]
+        mg = MediaGroupBuilder()
+        for p in chunk:
+            mg.add_photo(
+                media=FSInputFile(str(p)),
+                caption=p.name[:100]  # optional
+            )
+        await cb.message.answer_media_group(mg.build())
+
+
 
 @dp.callback_query(F.data == "rups")
 async def on_rups(cb: CallbackQuery):
