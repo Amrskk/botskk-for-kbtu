@@ -219,7 +219,7 @@ async def on_settings(cb: CallbackQuery):
     await cb.message.edit_text(text, reply_markup=inline_main_menu())
     await cb.answer()
 
-@dp.callback_query(F.data == "gallery-2024")
+@dp.callback_query(F.data == "KBTU_Schema")
 async def on_gallery(cb: CallbackQuery):
     folder = Path(__file__).resolve().parent / "files" / "images" / "2024"
     paths = sorted(folder.glob("*.jpg")) + sorted(folder.glob("*.png"))
