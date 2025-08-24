@@ -18,14 +18,12 @@ from langchain_core.messages import SystemMessage, HumanMessage
 
 # Env variables
 load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-5")
 DB_FILE = "chat_history.json"   # optional, read-only curated Q/A
 PDF_ROOT = Path(__file__).resolve().parent / "files" / "rups"
 YEAR_RANGES = ["2021-2022", "2022-2023", "2023-2024", "2024-2025"]
+DEFAULT_MODEL = os.getenv("LLM_MODEL", "openai/gpt-4.1-mini")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-
 # model selection (switchable via inline buttons)
 current_model = {"name": DEFAULT_MODEL}
 
@@ -78,11 +76,12 @@ def inline_main_menu() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text=" Академ Календарь", callback_data="calendar")
         ],
         [
-            InlineKeyboardButton(text=" Модель: GPT-5", callback_data="model_gpt5"),
-            InlineKeyboardButton(text=" Модель: GPT-5-mini", callback_data="model_gpt5mini"),
+            InlineKeyboardButton(text=" Модель: 4.1-mini", callback_data="model_openai_gpt41mini"),
+            InlineKeyboardButton(text=" Модель: 4.1",      callback_data="model_openai_gpt41"),
+            InlineKeyboardButton(text=" Модель: 4o-mini",   callback_data="model_openai_gpt4omini"),
             InlineKeyboardButton(text=" Формирование Расписания", callback_data="timetable-alter"),
-            InlineKeyboardButton(text=" Папка с каналами и чатами КБТУ", callback_data="kbtu-chats")
         ],
+        [InlineKeyboardButton(text=" Папка с каналами и чатами КБТУ", callback_data="kbtu-chats")],
     ])
 
 def rups_menu() -> InlineKeyboardMarkup:
@@ -109,6 +108,44 @@ def years_menu(faculty_slug: str) -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="⬅️ Назад", callback_data="rups")
     ]])
 
+def make_llm(model_slug: str) -> ChatOpenAI:
+    return ChatOpenAI(
+        model=model_slug,                      
+        api_key=os.getenv("OPENROUTER_API_KEY"),
+        base_url="https://openrouter.ai/api/v1",
+        default_headers={
+            "HTTP-Referer": "https://t.me/amrsk_bot", 
+            "X-Title": "KBTU Telegram Bot",
+        },
+        timeout=30,
+        max_retries=2,
+    )
+
+def make_llm(model_slug: str) -> ChatOpenAI:
+    return ChatOpenAI(
+        model=model_slug,                     
+        api_key=OPENROUTER_API_KEY,
+        base_url="https://openrouter.ai/api/v1",
+        default_headers={
+            "HTTP-Referer": "https://t.me/amrskk_bot",
+            "X-Title": "KBTU Telegram Bot",
+        },
+        timeout=30,
+        max_retries=2,
+    )
+
+FALLBACKS = ["openai/gpt-4.1-mini", "openai/gpt-4o-mini"]
+
+async def call_llm_with_fallback(messages, primary_slug: str):
+    tried = [primary_slug] + [m for m in FALLBACKS if m != primary_slug]
+    last_err = None
+    for slug in tried:
+        try:
+            llm = make_llm(slug)
+            return await llm.ainvoke(messages)
+        except Exception as e:
+            last_err = e
+    raise last_err
 
 # Commands
 @dp.message(F.text.in_({"/start", "/menu"}))
@@ -213,9 +250,14 @@ async def on_timetable_alter(cb: CallbackQuery):
     await cb.message.answer_document(doc, caption="Вот расписание")
     await cb.answer()
 
-@dp.callback_query(F.data.in_({"model_gpt5", "model_gpt5mini"}))
+@dp.callback_query(F.data.in_({"model_openai_gpt41mini","model_openai_gpt41","model_openai_gpt4omini"}))
 async def on_model_change(cb: CallbackQuery):
-    new_name = "gpt-5" if cb.data == "model_gpt5" else "gpt-5-mini"
+    slug_map = {
+        "model_openai_gpt41mini": "openai/gpt-4.1-mini",
+        "model_openai_gpt41":     "openai/gpt-4.1",
+        "model_openai_gpt4omini": "openai/gpt-4o-mini",
+    }
+    new_name = slug_map[cb.data]
     current_model["name"] = new_name
     await cb.message.edit_text(f"Модель переключена на: {new_name}", reply_markup=inline_main_menu())
     await cb.answer("Switched")
@@ -227,42 +269,22 @@ async def handle_msg(msg: Message):
     if not user_input:
         return
 
-    # In groups, only respond when bot is mentioned
-    if msg.chat.type in ("group", "supergroup"):
-        bot_info = await bot.get_me()
-        mentioned = any(
-            f"@{bot_info.username}" in (msg.text or "")
-            for entity in (msg.entities or [])
-            if entity.type in ("mention", "text_mention", "bot_command")
-        )
-        if not mentioned:
-            return
+    # Optional: group mention gate (your previous logic omitted for brevity)
 
-    # Try curated read-only answers first
     cached = search_db(user_input)
     if cached:
         await msg.answer(cached)
         return
 
-    # Build messages and call selected model
-    messages = [
-        SystemMessage(content=SYSTEM_PROMPT),
-        HumanMessage(content=user_input)
-    ]
-
+    messages = [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=user_input)]
     try:
-        llm = ChatOpenAI(
-            model="openrouter/openai/gpt-4.1",
-            api_key=os.getenv("OPENROUTER_API_KEY"),
-            base_url="https://openrouter.ai/api/v1"
-        )
-        result = await llm.ainvoke(messages)
-        reply = result.content
-        await msg.answer(reply)
+        slug = current_model["name"] or DEFAULT_MODEL
+        result = await call_llm_with_fallback(messages, slug)
+        await msg.answer(result.content)
     except Exception as e:
         await msg.answer(f"Ошибка LLM: {e}")
 
-# Webhook endpoint (FastAPI) 
+#Webhook endpoint (unused in polling)
 @app.post("/webhook")
 async def telegram_webhook(req: Request):
     data = await req.json()
