@@ -9,10 +9,6 @@ A smart Telegram assistant for KBTU students, built with Aiogram 3.
 
 -   Academic Calendar. One-click access to official PDF calendar.
 
--   Schedule Helper . Guide for building your class timetable.
-
--   Images / Albums. Send single images or whole albums on button press.
-
 -   Quick links . Shortcut to official KBTU chats and channels.
 
 -   Inline menu . Switch models, settings, help, etc.
