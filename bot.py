@@ -20,7 +20,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 # Env variables
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-DB_FILE = "chat_history.json"   # optional, read-only curated Q/A
+DB_FILE = "dataset.json"  
 PDF_ROOT = Path(__file__).resolve().parent / "files" / "rups"
 YEAR_RANGES = ["2021-2022", "2022-2023", "2023-2024", "2024-2025"]
 DEFAULT_MODEL = os.getenv("LLM_MODEL", "openai/gpt-4.1-mini")
@@ -151,6 +151,33 @@ async def call_llm_with_fallback(messages, primary_slug: str):
     raise last_err
 
 # Commands
+async def is_addressed(msg: Message, bot) -> bool:
+    if msg.chat.type == "private":
+        return True
+    bot_me = await bot.get_me()
+
+    if (
+        msg.reply_to_message
+        and msg.reply_to_message.from_user
+        and msg.reply_to_message.from_user.id == bot_me.id
+    ):
+        return True
+
+    text = (msg.text or msg.caption or "")
+    entities = (msg.entities or []) + (msg.caption_entities or [])
+    uname = f"@{(bot_me.username or '').lower()}" if bot_me.username else None
+
+    for ent in entities:
+        if ent.type in ("mention", "text_mention", "bot_command"):
+            segment = text[ent.offset: ent.offset + ent.length].lower()
+
+            if uname and uname in segment:
+                return True
+            if ent.type == "bot_command" and uname and segment.endswith(uname):
+                return True
+
+    return False
+
 @dp.message(F.text.in_({"/start", "/menu"}))
 async def cmd_start(msg: Message):
     await msg.answer(
@@ -290,13 +317,14 @@ async def on_model_change(cb: CallbackQuery):
     await cb.answer("Switched")
 
 # Main text handler
-@dp.message(F.text)
+@dp.message(F.text | F.caption)
 async def handle_msg(msg: Message):
-    user_input = (msg.text or "").strip()
-    if not user_input:
+    if not await is_addressed(msg, bot):
         return
 
-    # Optional: group mention gate (your previous logic omitted for brevity)
+    user_input = (msg.text or msg.caption or "").strip()
+    if not user_input:
+        return
 
     cached = search_db(user_input)
     if cached:
@@ -311,7 +339,6 @@ async def handle_msg(msg: Message):
     except Exception as e:
         await msg.answer(f"Ошибка LLM: {e}")
 
-#Webhook endpoint (unused in polling)
 @app.post("/webhook")
 async def telegram_webhook(req: Request):
     data = await req.json()
