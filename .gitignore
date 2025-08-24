@@ -1,0 +1,61 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.egg-info/
+*.so
+*.out
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Jupyter / IPython
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log
+logs/
+nohup.out
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# === Project-specific ===
+# Local secrets
+.env
+*.env
+
+# Database / cache files
+chat_history.json
+*.db
+*.sqlite3
+
+# Uploaded/generated files
+files/**/*.pdf
+files/**/*.docx
+files/**/*.xlsx
+
+# If you want to keep some PDFs in repo, remove the above rule
+# and instead list only big private files:
+# files/guideToSchedule.pdf
+# files/Calendar20252026.pdf
+
+# Byte-compiled transformers cache
+.sentence_transformers/
+
+# Docker
+*.pid
+*.sock
+.dockerignore
+docker-compose.override.yml
+
+# IDE
+.vscode/
+.idea/
