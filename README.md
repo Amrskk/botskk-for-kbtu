@@ -16,4 +16,4 @@ A smart Telegram assistant for KBTU students, built with Aiogram 3.
 ## Deployed on VPS !!
 ## License
 
-BURGER KING / KFC / Hood Programming Community / Ken Carson License © 2025 KBTU Freshman Quest Project
+BURGER KING / KFC / Hood Programming Community / Ken Carson License © 2025 KBTU botskk
