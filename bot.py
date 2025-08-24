@@ -289,7 +289,7 @@ async def on_years_menu(cb: CallbackQuery):
 async def on_kbtu_chats(cb: CallbackQuery):
     text = (
         "Папка с чатами и каналами КБТУ:\n"
-        "https://t.me/addlist/CcIzd-EfozY4MDky"
+        "https://t.me/addlist/xqhvyIeR73ZiYTBh"
     )
     await cb.message.edit_text(text, reply_markup=inline_main_menu())
     await cb.answer()
