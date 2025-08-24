@@ -24,6 +24,7 @@ DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-5")
 DB_FILE = "chat_history.json"   # optional, read-only curated Q/A
 PDF_ROOT = Path(__file__).resolve().parent / "files" / "rups"
 YEAR_RANGES = ["2021-2022", "2022-2023", "2023-2024", "2024-2025"]
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 # model selection (switchable via inline buttons)
 current_model = {"name": DEFAULT_MODEL}
@@ -250,7 +251,11 @@ async def handle_msg(msg: Message):
     ]
 
     try:
-        llm = ChatOpenAI(model=current_model["name"])
+        llm = ChatOpenAI(
+            model="openrouter/openai/gpt-4.1",
+            api_key=os.getenv("OPENROUTER_API_KEY"),
+            base_url="https://openrouter.ai/api/v1"
+        )
         result = await llm.ainvoke(messages)
         reply = result.content
         await msg.answer(reply)
