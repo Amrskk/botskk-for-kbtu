@@ -14,6 +14,8 @@ A smart Telegram assistant for KBTU students, built with Aiogram 3.
 -   Inline menu . Switch models, settings, help, etc.
 ---
 ## Deployed on VPS !!
+## How to Contribute
+Want to add your info to the chatbot database? Check [Contributing Guide](CONTRIBUTING.md) and open a pull request!
 ## License
 
 BURGER KING / KFC / Hood Programming Community / Ken Carson License © 2025 KBTU botskk
