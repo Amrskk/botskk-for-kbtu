@@ -1,5 +1,6 @@
 # KBTU Botskk 
-Not under maintance anymore , was deployed as a daemon process on my laptop but I shutted it down
+Not under maintenance anymore , was deployed as a daemon process on my laptop but I shutted it down
+May be I will redeploy it on digital ocean server or smth.
 ---
 
 ##  Features
@@ -13,7 +14,6 @@ Not under maintance anymore , was deployed as a daemon process on my laptop but 
 
 -   Inline menu . Switch models, settings, help, etc.
 ---
-## Deployed on VPS !!
 ## How to Contribute
 Want to add your info to the chatbot database? Check [Contributing Guide](CONTRIBUTING.md) and open a pull request!
 ## License
