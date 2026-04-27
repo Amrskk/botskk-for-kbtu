@@ -1,8 +1,8 @@
 # KBTU Botskk 
-A smart Telegram assistant for KBTU students, built with Aiogram 3.
+Not under maintance anymore , was deployed as a daemon process on my laptop but I shutted it down
 ---
 
-## ⚡ Features
+##  Features
 -   AI Assistant (GPT-4.1, GPT-4o-mini, etc. via OpenRouter) .Short, helpful, neutral answers to any student questions.
 
 -   PDF Documents . Sends РУПы by faculty and year directly in Telegram.
