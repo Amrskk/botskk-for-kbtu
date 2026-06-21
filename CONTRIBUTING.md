@@ -20,7 +20,7 @@ Please follow the steps below to submit your information:
   {
   "name": "Your Name",
   "username": "@yourhandle",
-  "message": "Hello from me!"
+  "message": "loll"
   }
   ```
 5. **Commit your changes**:
