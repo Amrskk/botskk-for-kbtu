@@ -3,7 +3,7 @@ from aiogram import Bot
 from dotenv import load_dotenv
 
 load_dotenv()
-from bot import dp  # your file with handlers (bot.py). Change if named differently.
+from bot import dp
 
 async def main():
     bot = Bot(token=os.getenv("TELEGRAM_TOKEN"))
